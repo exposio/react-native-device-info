@@ -8,42 +8,44 @@
 
 #import "RNDeviceInfo.h"
 #import "DeviceUID.h"
+#if !(TARGET_OS_TV)
 #import <LocalAuthentication/LocalAuthentication.h>
+#endif
 
 @interface RNDeviceInfo()
 @property (nonatomic) bool isEmulator;
 @end
 
-@implementation RNDeviceInfo
-{
+@import CoreTelephony;
 
-}
+@implementation RNDeviceInfo
 
 @synthesize isEmulator;
 
-RCT_EXPORT_MODULE()
+RCT_EXPORT_MODULE(RNDeviceInfo)
 
-- (dispatch_queue_t)methodQueue
++ (BOOL)requiresMainQueueSetup
 {
-    return dispatch_get_main_queue();
+   return YES;
 }
+
 
 - (NSString*) deviceId
 {
     struct utsname systemInfo;
 
     uname(&systemInfo);
-    
+
     NSString* deviceId = [NSString stringWithCString:systemInfo.machine
                                             encoding:NSUTF8StringEncoding];
-    
+
     if ([deviceId isEqualToString:@"i386"] || [deviceId isEqualToString:@"x86_64"] ) {
         deviceId = [NSString stringWithFormat:@"%s", getenv("SIMULATOR_MODEL_IDENTIFIER")];
         self.isEmulator = YES;
     } else {
         self.isEmulator = NO;
     }
-    
+
     return deviceId;
 }
 
@@ -52,7 +54,7 @@ RCT_EXPORT_MODULE()
     static NSDictionary* deviceNamesByCode = nil;
 
     if (!deviceNamesByCode) {
-        
+
         deviceNamesByCode = @{@"iPod1,1"   :@"iPod Touch",      // (Original)
                               @"iPod2,1"   :@"iPod Touch",      // (Second Generation)
                               @"iPod3,1"   :@"iPod Touch",      // (Third Generation)
@@ -152,6 +154,13 @@ RCT_EXPORT_MODULE()
     return deviceName;
 }
 
+- (NSString *) carrier
+{
+    CTTelephonyNetworkInfo *netinfo = [[CTTelephonyNetworkInfo alloc] init];
+    CTCarrier *carrier = [netinfo subscriberCellularProvider];
+    return carrier.carrierName;
+}
+
 - (NSString*) userAgent
 {
 #if TARGET_OS_TV
@@ -185,6 +194,16 @@ RCT_EXPORT_MODULE()
   return [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad;
 }
 
+- (bool) is24Hour
+{
+    NSString *format = [NSDateFormatter dateFormatFromTemplate:@"j" options:0 locale:[NSLocale currentLocale]];
+    return ([format rangeOfString:@"a"].location == NSNotFound);
+}
+
+- (unsigned long long) totalMemory {
+  return [NSProcessInfo processInfo].physicalMemory;
+}
+
 - (NSDictionary *)constantsToExport
 {
     UIDevice *currentDevice = [UIDevice currentDevice];
@@ -202,21 +221,29 @@ RCT_EXPORT_MODULE()
              @"deviceLocale": self.deviceLocale,
              @"deviceCountry": self.deviceCountry ?: [NSNull null],
              @"uniqueId": uniqueId,
+             @"appName": [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleDisplayName"],
              @"bundleId": [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleIdentifier"],
              @"appVersion": [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: [NSNull null],
              @"buildNumber": [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"],
              @"systemManufacturer": @"Apple",
+             @"carrier": self.carrier ?: [NSNull null],
              @"userAgent": self.userAgent,
              @"timezone": self.timezone,
              @"isEmulator": @(self.isEmulator),
              @"isTablet": @(self.isTablet),
+             @"is24Hour": @(self.is24Hour),
+             @"totalMemory": @(self.totalMemory)
              };
 }
 
 RCT_EXPORT_METHOD(isPinOrFingerprintSet:(RCTResponseSenderBlock)callback)
 {
+  #if TARGET_OS_TV
+    BOOL isPinOrFingerprintSet = false;
+  #else
     LAContext *context = [[LAContext alloc] init];
     BOOL isPinOrFingerprintSet = ([context canEvaluatePolicy:LAPolicyDeviceOwnerAuthentication error:nil]);
+  #endif
     callback(@[[NSNumber numberWithBool:isPinOrFingerprintSet]]);
 }
 

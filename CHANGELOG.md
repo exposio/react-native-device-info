@@ -2,6 +2,13 @@
 
 ### Upcoming
 
+- Make play-services optional (https://github.com/rebeccahughes/react-native-device-info/pull/226)
+- Critical fix on WIFI STATE (https://github.com/rebeccahughes/react-native-device-info/pull/249)
+- Added `getTotalMemory` and `getMaxMemory` (https://github.com/rebeccahughes/react-native-device-info/pull/289)
+- Introduced `getApplicationName` to see the name of the app both on ios, android and win (https://github.com/rebeccahughes/react-native-device-info/pull/210)
+
+### 0.12.0
+
 - Get real WebView UserAgent on Android (https://github.com/rebeccahughes/react-native-device-info/pull/207)
 - Add DeviceUID.h to public headers (https://github.com/rebeccahughes/react-native-device-info/pull/217)
 - Add `getPhoneNumber` (https://github.com/rebeccahughes/react-native-device-info/pull/174)
@@ -14,6 +21,7 @@
 - Add Android support for serial number, IP, and MAC address (https://github.com/rebeccahughes/react-native-device-info/pull/150)
 - Add tvOS support (https://github.com/rebeccahughes/react-native-device-info/pull/235)
 - Add flow types
+- Fix getCurrentActivity() null crash in Android (https://github.com/rebeccahughes/react-native-device-info/pull/247)
 
 [Diff](https://github.com/rebeccahughes/react-native-device-info/compare/1aafc6f0b20d7cd6f0939ea5370e9899e4914c93...master)
 
@@ -51,7 +59,7 @@
 
 Several bugfixes and detecting if device is a tablet
 
-### 0.9.3 
+### 0.9.3
 
 adds support for Brand information e.g. apple, htc, etc
 
